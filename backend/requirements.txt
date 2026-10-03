@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+sqlalchemy
+alembic
+pytest
+httpx
+psycopg2-binary
+pgvector
+passlib[bcrypt]
+PyJWT
+python-multipart
+redis
+email-validator
+openai>=1.14.0
+networkx

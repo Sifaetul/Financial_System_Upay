@@ -1,0 +1,105 @@
+backend/app/worker.py:90:            # It's fine, this is just a dummy consumer to prove the architecture.
+backend/app/core/config.py:10:    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+backend/app/core/config.py:14:    DATABASE_URI: str = "postgresql+psycopg2://user:password@localhost:5432/upay_nexus"
+backend/app/core/config.py:15:    REDIS_URI: str = "redis://localhost:6379/0"
+backend/app/core/config.py:16:    SECRET_KEY: str = "placeholder-secret-do-not-use-in-prod"
+backend/app/core/config.py:25:            if self.SECRET_KEY == "placeholder-secret-do-not-use-in-prod" or len(self.SECRET_KEY) < 32:
+backend/app/core/config.py:27:            if "localhost" in self.DATABASE_URI and not os.environ.get("ALLOW_LOCALHOST_DB"):
+backend/app/core/config.py:28:                raise ValueError("Required production configuration is unsafe (localhost DB).")
+backend/app/core/security.py:17:def get_password_hash(password: str) -> str:
+backend/app/core/security.py:20:    sha256_hash = hashlib.sha256(password.encode('utf-8')).hexdigest().encode('utf-8')
+backend/app/core/security.py:36:def decode_token(token: str):
+backend/app/core/security.py:38:        decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+backend/app/core/security.py:46:def get_token_hash(token: str) -> str:
+backend/app/core/security.py:47:    return hashlib.sha256(token.encode('utf-8')).hexdigest()
+Binary file backend/app/core/__pycache__/config.cpython-312.pyc matches
+backend/app/schemas/auth.py:6:    password: str = Field(min_length=8, max_length=128)
+backend/app/schemas/auth.py:18:class Token(BaseModel):
+backend/app/api/v1/endpoints/auth.py:9:from app.schemas.auth import UserCreate, UserResponse, Token, RefreshRequest
+backend/app/api/v1/endpoints/auth.py:23:    if user_in.password != user_in.password_confirm:
+backend/app/api/v1/endpoints/auth.py:30:    # Check basic password policy (e.g. not common weak)
+backend/app/api/v1/endpoints/auth.py:31:    if user_in.password.lower() in ["password123", "qwerty", "admin"]:
+backend/app/api/v1/endpoints/auth.py:32:        raise HTTPException(status_code=400, detail="Password is too weak")
+backend/app/api/v1/endpoints/auth.py:41:    hashed = get_password_hash(user_in.password)
+backend/app/api/v1/endpoints/auth.py:52:@router.post("/login", response_model=Token, dependencies=[Depends(rate_limit(10, 60))])
+backend/app/api/v1/endpoints/auth.py:55:    if not user or not verify_password(form_data.password, user.password_hash):
+backend/app/api/v1/endpoints/auth.py:57:        raise HTTPException(status_code=401, detail="Incorrect email or password")
+backend/app/api/v1/endpoints/auth.py:66:    # Store refresh token state (hash it for security if needed, or store JTI)
+backend/app/api/v1/endpoints/auth.py:83:@router.post("/refresh", response_model=Token, dependencies=[Depends(rate_limit(5, 60))])
+backend/app/api/v1/endpoints/auth.py:87:        raise HTTPException(status_code=401, detail="Invalid refresh token")
+backend/app/api/v1/endpoints/auth.py:92:    # Find active token belonging to this family
+backend/app/api/v1/endpoints/auth.py:99:    for token in db_tokens:
+backend/app/api/v1/endpoints/auth.py:100:        if get_token_hash(req.refresh_token) == token.token_hash:
+backend/app/api/v1/endpoints/auth.py:101:            matching_token = token
+backend/app/api/v1/endpoints/auth.py:110:        raise HTTPException(status_code=401, detail="Invalid refresh token")
+backend/app/api/v1/endpoints/auth.py:118:        raise HTTPException(status_code=401, detail="Refresh token revoked")
+backend/app/api/v1/endpoints/auth.py:122:        raise HTTPException(status_code=401, detail="Refresh token expired")
+Binary file backend/app/api/v1/endpoints/__pycache__/auth.cpython-312.pyc matches
+backend/app/api/v1/websockets.py:32:async def websocket_alerts(websocket: WebSocket, token: str):
+backend/app/api/v1/websockets.py:36:    payload = decode_access_token(token)
+backend/app/api/deps.py:53:def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+backend/app/api/deps.py:59:    payload = decode_token(token)
+backend/app/services/embedding_provider.py:22:            raise ValueError("OpenAI API key not configured")
+backend/app/services/risk_engine.py:183:# Dummy providers for demonstration
+backend/app/services/risk_engine.py:186:    # Here we mock a deterministic rule
+backend/app/services/risk_engine.py:204:    # Another dummy deterministic provider
+Binary file backend/app/services/__pycache__/embedding_provider.cpython-312.pyc matches
+Binary file backend/app/services/__pycache__/llm_provider.cpython-312.pyc matches
+backend/app/services/llm_provider.py:23:            raise ValueError("OpenAI API key not configured")
+frontend/src/app/customers/[id]/financial/page.tsx:15:        const token = localStorage.getItem('token')
+frontend/src/app/customers/[id]/financial/page.tsx:16:        const res = await fetch(`http://localhost:8000/api/v1/customers/${customerId}/financial`, {
+frontend/src/app/customers/[id]/financial/page.tsx:17:          headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/customers/[id]/page.tsx:15:        const token = localStorage.getItem('token')
+frontend/src/app/customers/[id]/page.tsx:16:        const res = await fetch(`http://localhost:8000/api/v1/customers/${customerId}/360`, {
+frontend/src/app/customers/[id]/page.tsx:17:          headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/financial/page.tsx:34:          placeholder="Enter ID..." 
+frontend/src/app/copilot/page.tsx:37:          placeholder="Case ID" className="border p-2 rounded"
+frontend/src/app/copilot/page.tsx:74:            placeholder="Ask a question about the case evidence..." 
+frontend/src/app/network/page.tsx:43:          placeholder="Enter ID..." className="border p-2 rounded flex-1"
+frontend/src/app/graph/page.tsx:19:      const token = localStorage.getItem('token')
+frontend/src/app/graph/page.tsx:20:      const res = await fetch(`http://localhost:8000/api/v1/graph/neighborhood/${nodeType}/${nodeId}?depth=2`, {
+frontend/src/app/graph/page.tsx:21:        headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/graph/page.tsx:33:        const sigRes = await fetch(`http://localhost:8000/api/v1/graph/signals/${nodeType}/${nodeId}`, {
+frontend/src/app/graph/page.tsx:34:          headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/graph/page.tsx:59:          placeholder="Entity ID" 
+frontend/src/app/cases/[id]/page.tsx:13:      const token = localStorage.getItem('token')
+frontend/src/app/cases/[id]/page.tsx:14:      const res = await fetch(`http://localhost:8000/api/v1/investigation/cases/${caseId}`, {
+frontend/src/app/cases/[id]/page.tsx:15:        headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/cases/page.tsx:10:      const token = localStorage.getItem('token')
+frontend/src/app/cases/page.tsx:11:      const res = await fetch('http://localhost:8000/api/v1/investigation/cases', {
+frontend/src/app/cases/page.tsx:12:        headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/agents/[id]/page.tsx:15:        const token = localStorage.getItem('token')
+frontend/src/app/agents/[id]/page.tsx:16:        const res = await fetch(`http://localhost:8000/api/v1/agents/${agentId}/intelligence`, {
+frontend/src/app/agents/[id]/page.tsx:17:          headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/agents/page.tsx:34:          placeholder="Enter ID..." 
+frontend/src/app/merchants/[id]/page.tsx:15:        const token = localStorage.getItem('token')
+frontend/src/app/merchants/[id]/page.tsx:16:        const res = await fetch(`http://localhost:8000/api/v1/merchants/${merchantId}/intelligence`, {
+frontend/src/app/merchants/[id]/page.tsx:17:          headers: { Authorization: `Bearer ${token}` }
+frontend/src/app/merchants/page.tsx:34:          placeholder="Enter ID..." 
+frontend/src/app/alerts/page.tsx:27:    const token = localStorage.getItem('auth_token');
+frontend/src/app/alerts/page.tsx:31:      if (!token) {
+frontend/src/app/alerts/page.tsx:36:      const ws = new WebSocket(`ws://localhost:8000/api/v1/ws/alerts?token=${token}`);
+frontend/src/app/competition/page.tsx:34:          placeholder="Enter ID..." 
+frontend/src/app/login/page.tsx:9:  const [password, setPassword] = useState("");
+frontend/src/app/login/page.tsx:20:      form.append("password", password);
+frontend/src/app/login/page.tsx:53:          <label className="block text-sm font-medium">Password</label>
+frontend/src/app/login/page.tsx:55:            type="password" 
+frontend/src/app/login/page.tsx:56:            value={password}
+frontend/src/components/CopilotPanel.tsx:23:      const token = localStorage.getItem('token')
+frontend/src/components/CopilotPanel.tsx:24:      const res = await fetch(`http://localhost:8000/api/v1/copilot/cases/${caseId}/chat`, {
+frontend/src/components/CopilotPanel.tsx:28:          'Authorization': `Bearer ${token}` 
+frontend/src/components/CopilotPanel.tsx:116:            placeholder="Ask about evidence, transactions..." 
+frontend/src/lib/auth.tsx:16:  login: (token: string, refresh: string) => void;
+frontend/src/lib/auth.tsx:29:      const token = localStorage.getItem("access_token");
+frontend/src/lib/auth.tsx:30:      if (token) {
+frontend/src/lib/auth.tsx:49:  const login = (token: string, refresh: string) => {
+frontend/src/lib/auth.tsx:50:    localStorage.setItem("access_token", token);
+frontend/src/lib/api.ts:1:export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+frontend/src/lib/api.ts:4:  const token = localStorage.getItem("access_token");
+frontend/src/lib/api.ts:7:  if (token) {
+frontend/src/lib/api.ts:8:    headers.set("Authorization", `Bearer ${token}`);
+frontend/src/lib/api.ts:13:  // Basic retry logic for 401 could go here with refresh token
+frontend/src/lib/api/client.ts:1:const API_BASE_URL = 'http://localhost:8000/api/v1';
+frontend/src/lib/api/client.ts:7:  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+frontend/src/lib/api/client.ts:12:  if (token) {
+frontend/src/lib/api/client.ts:13:    headers['Authorization'] = `Bearer ${token}`;
